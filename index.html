@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">https://github.com/h743170600-cell/bookish-broccoli/tree/main
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>风云科技计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            padding: 20px;
+        }
+        
+        .calculator {
+            width: 100%;
+            max-width: 360px;
+            background: #2c3e50;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .brand {
+            padding: 15px 20px;
+            background: #1a2530;
+            color: #ecf0f1;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .display {
+            background: #ecf0f1;
+            padding: 25px 20px;
+            text-align: right;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        
+        .calculation {
+            font-size: 20px;
+            color: #7f8c8d;
+            min-height: 28px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .result {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            padding: 2px;
+            background: #34495e;
+        }
+        
+        .key {
+            border: none;
+            outline: none;
+            padding: 20px 10px;
+            font-size: 22px;
+            cursor: pointer;
+            background: #ecf0f1;
+            transition: all 0.2s;
+        }
+        
+        .key:active {
+            background: #bdc3c7;
+            transform: scale(0.95);
+        }
+        
+        .operator {
+            background: #f39c12;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .function {
+            background: #3498db;
+            color: white;
+        }
+        
+        .equals {
+            background: #2ecc71;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .zero {
+            grid-column: span 2;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .calculator {
+                max-width: 100%;
+                border-radius: 15px;
+            }
+            
+            .key {
+                padding: 18px 5px;
+                font-size: 20px;
+            }
+            
+            .result {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="brand">风云科技</div>
+        <div class="display">
+            <div class="calculation" id="calculation"></div>
+            <div class="result" id="result">0</div>
+        </div>
+        <div class="keypad">
+            <button class="key function" onclick="clearAll()">C</button>
+            <button class="key function" onclick="backspace()">⌫</button>
+            <button class="key function" onclick="appendOperation('√')">√</button>
+            <button class="key operator" onclick="appendOperation('÷')">÷</button>
+            
+            <button class="key" onclick="appendNumber('7')">7</button>
+            <button class="key" onclick="appendNumber('8')">8</button>
+            <button class="key" onclick="appendNumber('9')">9</button>
+            <button class="key operator" onclick="appendOperation('×')">×</button>
+            
+            <button class="key" onclick="appendNumber('4')">4</button>
+            <button class="key" onclick="appendNumber('5')">5</button>
+            <button class="key" onclick="appendNumber('6')">6</button>
+            <button class="key operator" onclick="appendOperation('-')">-</button>
+            
+            <button class="key" onclick="appendNumber('1')">1</button>
+            <button class="key" onclick="appendNumber('2')">2</button>
+            <button class="key" onclick="appendNumber('3')">3</button>
+            <button class="key operator" onclick="appendOperation('+')">+</button>
+            
+            <button class="key zero" onclick="appendNumber('0')">0</button>
+            <button class="key" onclick="appendNumber('.')">.</button>
+            <button class="key equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = '0';
+        let calculation = '';
+        let shouldResetScreen = false;
+        
+        const resultElement = document.getElementById('result');
+        const calculationElement = document.getElementById('calculation');
+        
+        function updateDisplay() {
+            resultElement.textContent = currentInput;
+            calculationElement.textContent = calculation;
+        }
+        
+        function appendNumber(number) {
+            if (currentInput === '0' || shouldResetScreen) {
+                currentInput = number;
+                shouldResetScreen = false;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+        
+        function appendOperation(operator) {
+            if (shouldResetScreen) {
+                calculation = calculation.slice(0, -1) + operator;
+            } else {
+                calculation += currentInput + operator;
+            }
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+        
+        function calculate() {
+            if (shouldResetScreen) return;
+            
+            try {
+                // 替换显示符号为可计算符号
+                let expression = calculation + currentInput;
+                expression = expression.replace(/×/g, '*').replace(/÷/g, '/');
+                
+                // 处理开方运算
+                if (expression.includes('√')) {
+                    const number = parseFloat(expression.split('√')[1]);
+                    currentInput = Math.sqrt(number).toString();
+                } else {
+                    currentInput = eval(expression).toString();
+                }
+                
+                calculation = '';
+                shouldResetScreen = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = '错误';
+                calculation = '';
+                shouldResetScreen = true;
+                updateDisplay();
+            }
+        }
+        
+        function clearAll() {
+            currentInput = '0';
+            calculation = '';
+            shouldResetScreen = false;
+            updateDisplay();
+        }
+        
+        function backspace() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+        
+        // 初始化显示
+        updateDisplay();
+    </script>
+</body>
+</html>
